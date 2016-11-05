@@ -1,0 +1,6 @@
+[package]
+name = "lib_concurrent"
+version = "0.1.0"
+authors = ["William Laeder <codylaeder@gmail.com>"]
+
+[dependencies]
