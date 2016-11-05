@@ -52,7 +52,7 @@ use std::sync::atomic::{AtomicBool,AtomicUsize,Ordering};
 const SEQ: Ordering = Ordering::SeqCst;
 const REX: Ordering = Ordering::Relaxed;
 
-///Represents the various states a lock can be in.
+//Represents the various states a lock can be in.
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
 pub enum LockState {
     Ready,
@@ -60,9 +60,9 @@ pub enum LockState {
     Timeout
 }
 
-///Represents the abstraction notion that a resource must be acquired or
-///locked. Contained is the act of polling the lock, and releasing the lock.
-pub trait Lock {
+//Represents the abstraction notion that a resource must be acquired or
+//locked. Contained is the act of polling the lock, and releasing the lock.
+trait Lock {
     fn poll(&self) -> LockState;
     fn release(&self);
 }
@@ -74,15 +74,15 @@ pub trait LoanLock {
     fn loan<'a>(&'a self) -> &'a AtomicUsize;
 }
 
-///A type that is turning into a lock.
-pub trait IntoLock<'a> {
+//A type that is turning into a lock.
+trait IntoLock<'a> {
     type Item: Lock+'a;
     fn into_lock(&'a self) -> Self::Item;
     fn into_timeout(&'a self, period: Duration) -> Self::Item;
 }
 
-///Abstract type that encapsulates a lock. 
-pub struct AtomicLocker<'a> {
+//Abstract type that encapsulates a lock. 
+struct AtomicLocker<'a> {
     data: &'a AtomicUsize,
     start: Option<Instant>,
     period: Option<Duration>
