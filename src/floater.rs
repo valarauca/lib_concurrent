@@ -9,11 +9,10 @@ use std::sync::Arc;
 ///
 ///The floater interfaces do not do any locking. They do not trigger the
 ///RefCell to track borrows. All internal methods will be inlined.
-#[derive(Clone)]
-pub struct Floater<T: Send+Sync> {
+pub struct Floater<T: Sync> {
     data: Arc<RefCell<T>>
 }
-impl<T: Send+Sync> Floater<T> {
+impl<T: Sync> Floater<T> {
     ///Build a new Floater. This simply creates the Arc<RefCell< >> wrappers.
     #[inline(always)]
     pub fn new(data: T) -> Floater<T> {
@@ -40,5 +39,12 @@ impl<T: Send+Sync> Floater<T> {
     #[inline(always)]
     pub unsafe fn get<'a>(&'a self) -> &'a T {
         self.data.as_ptr().as_mut().expect("Null Pointer error!")
+    }
+}
+impl<T: Sync> Clone for Floater<T> {
+    fn clone(&self) -> Floater<T> {
+        Floater {
+            data: self.data.clone()
+        }
     }
 }
