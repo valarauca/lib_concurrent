@@ -1,11 +1,4 @@
 //!Spin lock abstract traits.
-//!
-//!The goal of this crate it to allow for the abstraction of spin locking. 
-//!Effectively. This means a resource which requires locking behavior can
-//!implement one of these traits `CanLock`. By doing this it will gain a
-//!huge number of additional functionality. 
-//!
-//!The cascading/inherated traits from `CanLock` are for `AtomicUsize`.
 
 
 use std::sync::atomic::{AtomicUsize,Ordering};

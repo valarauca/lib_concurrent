@@ -28,8 +28,10 @@ impl<T: Sync> Floater<T> {
     ///mutible mutable borrows existing at once. As such the interface is
     ///unsafe
     #[inline(always)]
-    pub unsafe fn get_mut<'a>(&'a self) -> &'a mut T {
-        self.data.as_ptr().as_mut().expect("Null Pointer error!")
+    pub fn get_mut<'a>(&'a self) -> &'a mut T {
+        unsafe{
+            self.data.as_ptr().as_mut().expect("Null Pointer error!")
+        }
     }
 
     ///Get a un-mutable ref
@@ -37,8 +39,11 @@ impl<T: Sync> Floater<T> {
     ///This will panic if the pointer is invalid. There is no locking or
     ///tracking done internally. 
     #[inline(always)]
-    pub unsafe fn get<'a>(&'a self) -> &'a T {
-        self.data.as_ptr().as_mut().expect("Null Pointer error!")
+    pub fn get<'a>(&'a self) -> &'a T {
+        unsafe{
+            self.data.as_ptr().as_mut().expect("Null Pointer error!")
+    
+        }
     }
 }
 impl<T: Sync> Clone for Floater<T> {
