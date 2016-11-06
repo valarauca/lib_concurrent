@@ -47,23 +47,18 @@
 //!      //and we can see the data
 //!      assert!( con.data().unwrap().data.len() == 2);
 
+
+use super::Async;
 use std::time::{Duration,Instant};
 use std::sync::atomic::{AtomicBool,AtomicUsize,Ordering};
 const SEQ: Ordering = Ordering::SeqCst;
 const REX: Ordering = Ordering::Relaxed;
 
-//Represents the various states a lock can be in.
-#[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum LockState {
-    Ready,
-    Block,
-    Timeout
-}
 
 //Represents the abstraction notion that a resource must be acquired or
 //locked. Contained is the act of polling the lock, and releasing the lock.
 trait Lock {
-    fn poll(&self) -> LockState;
+    fn poll(&self) -> Async<(),(),()>;
     fn release(&self);
 }
 
@@ -88,20 +83,20 @@ struct AtomicLocker<'a> {
     period: Option<Duration>
 }
 impl<'a> Lock for AtomicLocker<'a> {
-    fn poll(&self) -> LockState {
+    fn poll(&self) -> Async<(),(),()> {
         //check if we have a lock
         if self.data.compare_and_swap(0,1,SEQ)==0 {
-            return LockState::Ready;
+            return Async::Ok(());
         }
         //check timeout
         match self.period {
-            Option::None => LockState::Block,
+            Option::None => Async::Block(()),
             Option::Some(d) => match self.start {
                 Option::None => unreachable!(),
                 Option::Some(s) => if s.elapsed() >= d {
-                    LockState::Timeout
+                    Async::Err(())
                 } else {
-                    LockState::Block
+                    Async::Block(())
                 }
             }
         }
@@ -148,12 +143,14 @@ impl<'a,T: Sync+Sized+LoanLock+'a> Convar<'a,T> {
     }
 
     ///Attempt to acquire the lock.
-    pub fn poll(&self) -> LockState {
+    ///
+    ///One should note Err is a timeout. Block is just Block
+    pub fn poll(&self) -> Async<(),(),()> {
         if self.is_locked() {
-            return LockState::Ready;
+            return Async::Ok(());
         }
         let x = self.lock.poll();
-        if x == LockState::Ready {
+        if x == Async::Ok(()) {
             self.flag.store(true,REX);
         }
         x
